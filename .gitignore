@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+ENV/
+env/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+.DS_Store
+*.local
+
+# Model weights & large binaries
+*.pt
+*.pth
+*.bin
+*.onnx
+*.h5
+*.joblib
+*.pb
+*.weights
+test.jpg
+benchmark.py
+test_mime.py
+test_model.py
+test_c2pa*.py
