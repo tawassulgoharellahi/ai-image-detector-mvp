@@ -136,3 +136,360 @@
   align-items: center;
   gap: 1.5rem;
 }
+
+.checkboxContainer {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.checkboxGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkboxLabel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.checkboxLabel input[type="checkbox"] {
+  margin-top: 0.25rem;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent-blue);
+}
+
+.checkboxText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.checkboxName {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.warningTag {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.checkboxDesc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Dashboard Split-Screen Grid */
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.leftPanel, .rightPanel {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.leftPanel .previewContainer {
+  aspect-ratio: 4/3;
+}
+
+/* Right Panel / Report Styling */
+.reportTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.reportEmptyState, .reportLoadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px dashed var(--glass-border);
+  border-radius: 12px;
+  min-height: 300px;
+}
+
+.reportEmptyIcon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.reportEmptyState h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.reportEmptyState p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.reportResultsState {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Anomaly Gauge */
+.anomalyScoreSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+}
+
+.anomalyScoreGauge {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 6px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  margin-bottom: 1rem;
+}
+
+.anomalyScoreValue {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.anomalyScoreLabel {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+/* Breakdown & Explanations */
+.subModelsSection, .textReportSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modelBarItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.modelBarHeader {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.reportSummaryText {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.reportSummaryText strong {
+  color: var(--text-primary);
+}
+
+.modelExplainGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modelExplainItem {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.01);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent-blue);
+  line-height: 1.4;
+}
+
+.modelExplainItem strong {
+  color: var(--text-primary);
+}
+
+.c2paCertCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.c2paCertHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.c2paCertTitle {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.c2paCertBadge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.c2paBadgeInvalid {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.c2paBadgeAi {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.c2paBadgeCamera {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.c2paBadgeNeutral {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent-blue);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.c2paCertDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.c2paDetailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.c2paDetailLabel {
+  color: var(--text-secondary);
+}
+
+.c2paDetailValue {
+  color: var(--text-primary);
+  font-weight: 500;
+  text-align: right;
+}
+
+.validSig {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.invalidSig {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.bypassedModelsMessage {
+  padding: 1.25rem;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: var(--text-secondary);
+  border-radius: 12px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+
