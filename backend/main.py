@@ -297,26 +297,30 @@ async def detect_image(
                         ai_predictions = api_res.get("ai_predictions", {})
                         ai_score = ai_predictions.get("is_ai") or ai_predictions.get("ai_score") or 0.0
                         
-                        yield json.dumps({"status": "progress", "stage": "Sightengine API Check Complete!", "progress": 100}) + "\n"
-                        await asyncio.sleep(0.01)
-                        
-                        # Construct generator-specific prediction attributions
-                        details = ai_predictions.get("details", {})
-                        preds = [{"label": "Sightengine: AI Generated", "score": ai_score}]
-                        for gen, val in details.items():
-                            if val > 0.05:
-                                preds.append({
-                                    "label": f"Sightengine: {gen.capitalize()} Likelihood",
-                                    "score": val
-                                })
+                        if ai_score > 0.5:
+                            yield json.dumps({"status": "progress", "stage": "AI Detected by Sightengine!", "progress": 100}) + "\n"
+                            await asyncio.sleep(0.01)
+                            
+                            # Construct generator-specific prediction attributions
+                            details = ai_predictions.get("details", {})
+                            preds = [{"label": "Sightengine: AI Generated", "score": ai_score}]
+                            for gen, val in details.items():
+                                if val > 0.05:
+                                    preds.append({
+                                        "label": f"Sightengine: {gen.capitalize()} Likelihood",
+                                        "score": val
+                                    })
 
-                        yield json.dumps({
-                            "status": "complete",
-                            "predictions": preds,
-                            "overallScore": ai_score,
-                            "c2pa": c2pa_res
-                        }) + "\n"
-                        return
+                            yield json.dumps({
+                                "status": "complete",
+                                "predictions": preds,
+                                "overallScore": ai_score,
+                                "c2pa": c2pa_res
+                            }) + "\n"
+                            return
+                        else:
+                            yield json.dumps({"status": "progress", "stage": "Sightengine check complete. Running local models for cross-verification...", "progress": 15}) + "\n"
+                            await asyncio.sleep(0.01)
 
                     except Exception as err:
                         print(f"Sightengine API failed: {err}")
