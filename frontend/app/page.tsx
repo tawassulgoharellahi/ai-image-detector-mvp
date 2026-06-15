@@ -414,7 +414,7 @@ export default function Home() {
                             {!c2paMetadata.valid ? 'Invalid Signature' :
                              c2paMetadata.isAi ? 'Verified AI (C2PA)' :
                              c2paMetadata.isCamera ? 'Verified Camera (C2PA)' :
-                             'Altered C2PA Metadata'}
+                             'Content Credentials (C2PA)'}
                           </span>
                         </div>
 
