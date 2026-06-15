@@ -13,9 +13,9 @@ Processes cryptographically signed image metadata locally on the backend in `<10
 *   **Case C: Standard Fallback / Generic Manifest**: If the image is unsigned or has an untrusted signature, it falls back to deep learning model evaluation. If generic metadata is present, it is attached and shown in the inline **Content Credentials Card** on the UI.
 
 ### ✨ 2. Premium Cloud Detection Tier (New)
-Provides optional API-based verification using `aiimagedetectorapi.com` with a gold-gradient badge interface:
-*   **Early Exit**: If the cloud API detects AI with high confidence, it immediately returns the cloud result (e.g. `Cloud API: Midjourney v6 AI`), bypassing local execution.
-*   **Robust Fallback**: If the API key is unconfigured, or if the API detects a real image, or if the connection fails/rate-limits, the system automatically logs a status update and proceeds to Tier 3 local models.
+Provides optional API-based verification using the **Sightengine AI Generated Image Detection API** (`sightengine.com`) with a gold-gradient badge interface:
+*   **Early Exit (AI Detected)**: If the cloud API detects AI with high confidence (score > 50%), it immediately returns the Sightengine predictions and generator details (e.g. Midjourney, Stable Diffusion, Flux), bypassing local model execution.
+*   **Robust Fallback (Real Image / Failure)**: If the API credentials are unconfigured, if the image is detected as real (score <= 50%), or if the connection fails/rate-limits, the system automatically proceeds to Tier 3 local models.
 
 ### 📊 3. Calibrated Multi-Model Pipeline & Scoring
 *   **SigLIP2 General Classifier (60% weight)** (`king1oo1/deepfake-model`): Google's advanced vision-language encoder fine-tuned to classify real vs. AI images.
@@ -26,7 +26,7 @@ Provides optional API-based verification using `aiimagedetectorapi.com` with a g
 *   **"Digitally Edited" Verdict**: If the overall score is under 50% but the **ViT-v2** anomaly score is above **65%**, a secondary amber-colored badge displaying **"Digitally Edited"** is rendered next to the primary verdict badge to indicate manual alteration.
 
 ### 🖥️ 4. Sleek Split-Screen UI/UX
-*   **Left Configuration Panel**: Configuration checklist for toggling pipeline models (including the Premium Cloud API tier, dynamically recalculating normalized weights in real-time) and image dropzone.
+*   **Left Configuration Panel**: Configuration checklist for toggling pipeline models (including the Sightengine AI Detection tier, dynamically recalculating normalized weights in real-time) and image dropzone.
 *   **Right Report Panel**: Live sequential progress bar, circular gauge indicating **Anomaly Probability**, Verdict Badges, C2PA Provenance Certificate Details (Signature Trust, Capture/Edit Tool, Signing Authority, local Timestamp), Model Breakdowns, and a professional legal disclaimer.
 
 ---
@@ -54,7 +54,7 @@ Provides optional API-based verification using `aiimagedetectorapi.com` with a g
 *   Python (v3.9.0 or higher)
 
 ### 1. Backend Setup (FastAPI)
-Navigate to the `backend` directory, set up a virtual environment, install dependencies, and start the development server:
+Navigate to the `backend` directory, set up a virtual environment, install dependencies, configure environment variables, and start the development server:
 
 ```bash
 cd backend
@@ -67,6 +67,9 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Configure Sightengine API credentials (required for cloud tier)
+echo "SIGHTENGINE_API_USER=your_user_id\nSIGHTENGINE_API_SECRET=your_secret_key" > .env
 
 # Start the server (runs on http://localhost:8000)
 python -m uvicorn main:app --reload --port 8000
