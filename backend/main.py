@@ -294,15 +294,29 @@ async def detect_image(
                             err_msg = api_res.get("error", {}).get("message", "API request returned failure status")
                             raise Exception(err_msg)
 
+                        type_obj = api_res.get("type", {})
+                        ai_gen_obj = api_res.get("ai_generated", {})
                         ai_predictions = api_res.get("ai_predictions", {})
-                        ai_score = ai_predictions.get("is_ai") or ai_predictions.get("ai_score") or 0.0
+                        
+                        ai_score = (
+                            type_obj.get("ai_generated")
+                            or ai_gen_obj.get("ai_generated")
+                            or ai_predictions.get("is_ai")
+                            or ai_predictions.get("ai_score")
+                            or 0.0
+                        )
                         
                         if ai_score > 0.5:
                             yield json.dumps({"status": "progress", "stage": "AI Detected by Sightengine!", "progress": 100}) + "\n"
                             await asyncio.sleep(0.01)
                             
                             # Construct generator-specific prediction attributions
-                            details = ai_predictions.get("details", {})
+                            details = (
+                                ai_predictions.get("details")
+                                or type_obj.get("details")
+                                or api_res.get("details")
+                                or {}
+                            )
                             preds = [{"label": "Sightengine: AI Generated", "score": ai_score}]
                             for gen, val in details.items():
                                 if val > 0.05:
