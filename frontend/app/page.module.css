@@ -491,17 +491,4 @@
   text-align: center;
   margin-bottom: 1.5rem;
 }
-.premiumTag {
-  background: linear-gradient(135deg, #f59e0b, #ec4899);
-  color: white;
-  font-size: 0.7rem;
-  padding: 0.125rem 0.4rem;
-  border-radius: 6px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin-left: 0.5rem;
-  box-shadow: 0 0 8px rgba(236, 72, 153, 0.35);
-  display: inline-block;
-  vertical-align: middle;
-}
+
