@@ -13,6 +13,15 @@ import c2pa
 import os
 import requests
 
+# Load local .env file manually on startup if it exists
+if os.path.exists(".env"):
+    with open(".env") as f:
+        for line in f:
+            if line.strip() and not line.startswith("#"):
+                parts = line.strip().split("=", 1)
+                if len(parts) == 2:
+                    os.environ[parts[0].strip()] = parts[1].strip()
+
 AI_IMAGE_DETECTOR_API_KEY = os.environ.get("AI_IMAGE_DETECTOR_API_KEY", "")
 
 def verify_c2pa(image_bytes: bytes) -> dict:
