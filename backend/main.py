@@ -11,6 +11,19 @@ import json
 import asyncio
 import c2pa
 import os
+import requests
+
+# Load local .env file manually on startup if it exists
+if os.path.exists(".env"):
+    with open(".env") as f:
+        for line in f:
+            if line.strip() and not line.startswith("#"):
+                parts = line.strip().split("=", 1)
+                if len(parts) == 2:
+                    os.environ[parts[0].strip()] = parts[1].strip()
+
+SIGHTENGINE_API_USER = os.environ.get("SIGHTENGINE_API_USER", "")
+SIGHTENGINE_API_SECRET = os.environ.get("SIGHTENGINE_API_SECRET", "")
 
 
 
@@ -154,7 +167,9 @@ def health_check():
 async def detect_image(
     file: UploadFile = File(...),
     models: str = Form("SigLIP2,FLUX,ViT-v2"),
-    x_mock_c2pa: str | None = Header(None)
+    use_sightengine: bool = Form(False),
+    x_mock_c2pa: str | None = Header(None),
+    x_mock_sightengine: str | None = Header(None)
 ):
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File provided is not an image.")
@@ -219,7 +234,98 @@ async def detect_image(
                     }) + "\n"
                     return
 
+            # Tier 2: Sightengine AI Detection Check (Premium Option)
+            if use_sightengine:
+                yield json.dumps({"status": "progress", "stage": "Calling Sightengine AI Detection (Cloud)...", "progress": 12}) + "\n"
+                await asyncio.sleep(0.01)
 
+                if not SIGHTENGINE_API_USER and not SIGHTENGINE_API_SECRET and not x_mock_sightengine:
+                    yield json.dumps({"status": "progress", "stage": "Sightengine API credentials unconfigured. Falling back to local pipeline...", "progress": 15}) + "\n"
+                    await asyncio.sleep(0.01)
+                else:
+                    try:
+                        if x_mock_sightengine == "ai":
+                            api_res = {
+                                "status": "success",
+                                "ai_predictions": {
+                                    "is_ai": 0.98,
+                                    "ai_score": 0.98,
+                                    "human_score": 0.02,
+                                    "details": {
+                                        "midjourney": 0.95,
+                                        "stable_diffusion": 0.88,
+                                        "flux": 0.91
+                                    }
+                                }
+                            }
+                        elif x_mock_sightengine == "real":
+                            api_res = {
+                                "status": "success",
+                                "ai_predictions": {
+                                    "is_ai": 0.01,
+                                    "ai_score": 0.01,
+                                    "human_score": 0.99,
+                                    "details": {
+                                        "midjourney": 0.0,
+                                        "stable_diffusion": 0.01
+                                    }
+                                }
+                            }
+                        elif x_mock_sightengine == "fail":
+                            raise Exception("Mocked Sightengine API connection timeout")
+                        else:
+                            def call_sightengine():
+                                url = "https://api.sightengine.com/1.0/check.json"
+                                data = {
+                                    "models": "genai",
+                                    "api_user": SIGHTENGINE_API_USER,
+                                    "api_secret": SIGHTENGINE_API_SECRET
+                                }
+                                files = {
+                                    "media": (file.filename or "image.jpg", contents, file.content_type or "image/jpeg")
+                                }
+                                resp = requests.post(url, files=files, data=data, timeout=10)
+                                resp.raise_for_status()
+                                return resp.json()
+
+                            api_res = await asyncio.to_thread(call_sightengine)
+
+                        if api_res.get("status") == "failure":
+                            err_msg = api_res.get("error", {}).get("message", "API request returned failure status")
+                            raise Exception(err_msg)
+
+                        ai_predictions = api_res.get("ai_predictions", {})
+                        ai_score = ai_predictions.get("is_ai") or ai_predictions.get("ai_score") or 0.0
+                        
+                        if ai_score > 0.5:
+                            yield json.dumps({"status": "progress", "stage": "AI Detected by Sightengine!", "progress": 100}) + "\n"
+                            await asyncio.sleep(0.01)
+                            
+                            # Construct generator-specific prediction attributions
+                            details = ai_predictions.get("details", {})
+                            preds = [{"label": "Sightengine: AI Generated", "score": ai_score}]
+                            for gen, val in details.items():
+                                if val > 0.05:
+                                    preds.append({
+                                        "label": f"Sightengine: {gen.capitalize()} Likelihood",
+                                        "score": val
+                                    })
+
+                            yield json.dumps({
+                                "status": "complete",
+                                "predictions": preds,
+                                "overallScore": ai_score,
+                                "c2pa": c2pa_res
+                            }) + "\n"
+                            return
+                        else:
+                            yield json.dumps({"status": "progress", "stage": "Sightengine check complete. Running local models for cross-verification...", "progress": 15}) + "\n"
+                            await asyncio.sleep(0.01)
+
+                    except Exception as err:
+                        print(f"Sightengine API failed: {err}")
+                        yield json.dumps({"status": "progress", "stage": "Sightengine API call failed. Falling back to local pipeline...", "progress": 15}) + "\n"
+                        await asyncio.sleep(0.01)
 
             yield json.dumps({"status": "progress", "stage": "Initializing...", "progress": 20}) + "\n"
             await asyncio.sleep(0.01)

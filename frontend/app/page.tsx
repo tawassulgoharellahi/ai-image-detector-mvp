@@ -19,9 +19,10 @@ type C2paMetadata = {
 };
 
 const AVAILABLE_MODELS = [
-  { id: 'SigLIP2', name: 'SigLIP2', desc: 'General Deepfake Classifier', warning: false },
-  { id: 'FLUX', name: 'FLUX Detector', desc: 'Flow-matching anomalies (FLUX-specific)', warning: false },
-  { id: 'ViT-v2', name: 'ViT-v2', desc: 'Vision Transformer v2 anomalies', warning: false },
+  { id: 'SigLIP2', name: 'SigLIP2', desc: 'General Deepfake Classifier', warning: false, premium: false },
+  { id: 'FLUX', name: 'FLUX Detector', desc: 'Flow-matching anomalies (FLUX-specific)', warning: false, premium: false },
+  { id: 'ViT-v2', name: 'ViT-v2', desc: 'Vision Transformer v2 anomalies', warning: false, premium: false },
+  { id: 'Sightengine', name: 'Sightengine AI Detection', desc: 'Premium cloud-based model verification', warning: false, premium: true },
 ];
 
 const BASE_WEIGHTS: Record<string, number> = {
@@ -103,7 +104,11 @@ export default function Home() {
     
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('models', selectedModels.join(','));
+    
+    // Send local models and Sightengine parameter separately
+    const localModels = selectedModels.filter(m => m !== 'Sightengine');
+    formData.append('models', localModels.join(','));
+    formData.append('use_sightengine', selectedModels.includes('Sightengine').toString());
 
     try {
       const response = await fetch('http://localhost:8000/api/detect', {
@@ -176,7 +181,7 @@ export default function Home() {
   };
 
   const activeModels = AVAILABLE_MODELS
-    .filter(m => selectedModels.includes(m.id))
+    .filter(m => selectedModels.includes(m.id) && m.id !== 'Sightengine')
     .sort((a, b) => (BASE_WEIGHTS[b.id] || 0) - (BASE_WEIGHTS[a.id] || 0));
 
   const totalActiveWeight = activeModels.reduce((sum, m) => sum + (BASE_WEIGHTS[m.id] || 0), 0);
@@ -196,6 +201,7 @@ export default function Home() {
   const vitScore = vitResult ? vitResult.score : 0;
   const siglipScore = siglipResult ? siglipResult.score : 0;
   const isC2paBypassed = c2paMetadata?.present && c2paMetadata?.valid && (c2paMetadata?.isAi || c2paMetadata?.isCamera);
+  const isSightengineBypassed = results?.some(res => res.label.startsWith("Sightengine:"));
 
   const renderActiveModelsText = () => {
     if (modelWeights.length === 0) {
@@ -297,6 +303,9 @@ export default function Home() {
                             {model.name}
                             {model.warning && (
                               <span className={styles.warningTag}>Slow on CPU</span>
+                            )}
+                            {model.premium && (
+                              <span className={styles.premiumTag}>Premium</span>
                             )}
                           </span>
                           <span className={styles.checkboxDesc}>{model.desc}</span>
@@ -463,17 +472,24 @@ export default function Home() {
                       <div className={styles.bypassedModelsMessage}>
                         🛡️ Deep learning analysis bypassed. Image origin is cryptographically certified by active Content Credentials (C2PA).
                       </div>
+                    ) : isSightengineBypassed ? (
+                      <div className={styles.bypassedModelsMessage} style={{ borderColor: 'var(--success)', background: 'rgba(16, 185, 129, 0.08)' }}>
+                        ✨ Local neural network analysis bypassed. High-confidence AI generation signatures detected by premium Sightengine API.
+                      </div>
                     ) : (
                       <div className={styles.subModelsSection}>
                         <h4 className={styles.sectionTitle}>Model Breakdown</h4>
                         {results.map((res) => {
-                          const isAI = res.label.toLowerCase().includes('ai') || res.label.toLowerCase().includes('fake') || res.label.toLowerCase().includes('deepfake');
+                          const isAI = res.label.toLowerCase().includes('ai') || res.label.toLowerCase().includes('fake') || res.label.toLowerCase().includes('deepfake') || res.label.toLowerCase().includes('likelihood');
                           if (!isAI) return null;
                           
                           let displayName = res.label;
                           if (res.label.includes("General: Fake")) displayName = "SigLIP2 (General)";
                           else if (res.label.includes("FLUX: AI")) displayName = "FLUX Detector";
                           else if (res.label.includes("ViT-v2: Deepfake")) displayName = "ViT-v2 Anomaly";
+                          else if (res.label.startsWith("Sightengine:")) {
+                            displayName = res.label.replace("Sightengine: ", "");
+                          }
 
                           return (
                             <div key={res.label} className={styles.modelBarItem}>
@@ -512,6 +528,11 @@ export default function Home() {
                               This score is cryptographically certified by active <strong>Content Credentials (C2PA)</strong> embedded in the image manifest, verifying that the image was captured directly by a compatible physical camera device and contains no history of generative AI modification.
                             </>
                           )
+                        ) : isSightengineBypassed ? (
+                          <>
+                            Our detection engine predicts a <strong>{(overallScore * 100).toFixed(1)}% anomaly score</strong> for this photo.
+                            This score was verified using the premium <strong>Sightengine AI Detection API (Cloud)</strong>, which identified specific high-frequency noise fields and model-specific generative patterns from cloud-hosted/forensic detection networks.
+                          </>
                         ) : (
                           <>
                             Our detection engine predicts a <strong>{(overallScore * 100).toFixed(1)}% anomaly score</strong> for this photo. 
@@ -540,6 +561,11 @@ export default function Home() {
                         {selectedModels.includes('ViT-v2') && (
                           <div className={styles.modelExplainItem}>
                             <strong>ViT-v2 ({modelWeights.find(mw => mw.id === 'ViT-v2')?.weightPercent} weight)</strong>: Vision Transformer analyzing global anomalies; weighted lower due to real-photo calibration.
+                          </div>
+                        )}
+                        {selectedModels.includes('Sightengine') && (
+                          <div className={styles.modelExplainItem} style={{ borderLeftColor: '#f59e0b' }}>
+                            <strong>Sightengine AI Detection (Cloud Tier)</strong>: Queries the premium cloud engine to identify global generative anomalies before executing local pipeline fallbacks.
                           </div>
                         )}
 
