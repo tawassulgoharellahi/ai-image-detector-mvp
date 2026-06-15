@@ -19,9 +19,10 @@ type C2paMetadata = {
 };
 
 const AVAILABLE_MODELS = [
-  { id: 'SigLIP2', name: 'SigLIP2', desc: 'General Deepfake Classifier', warning: false },
-  { id: 'FLUX', name: 'FLUX Detector', desc: 'Flow-matching anomalies (FLUX-specific)', warning: false },
-  { id: 'ViT-v2', name: 'ViT-v2', desc: 'Vision Transformer v2 anomalies', warning: false },
+  { id: 'SigLIP2', name: 'SigLIP2', desc: 'General Deepfake Classifier', warning: false, premium: false },
+  { id: 'FLUX', name: 'FLUX Detector', desc: 'Flow-matching anomalies (FLUX-specific)', warning: false, premium: false },
+  { id: 'ViT-v2', name: 'ViT-v2', desc: 'Vision Transformer v2 anomalies', warning: false, premium: false },
+  { id: 'CloudAPI', name: 'AI Image Detector API', desc: 'Premium cloud-based model verification', warning: false, premium: true },
 ];
 
 const BASE_WEIGHTS: Record<string, number> = {
@@ -103,7 +104,11 @@ export default function Home() {
     
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('models', selectedModels.join(','));
+    
+    // Send local models and cloud API parameter separately
+    const localModels = selectedModels.filter(m => m !== 'CloudAPI');
+    formData.append('models', localModels.join(','));
+    formData.append('use_cloud_api', selectedModels.includes('CloudAPI').toString());
 
     try {
       const response = await fetch('http://localhost:8000/api/detect', {
@@ -176,7 +181,7 @@ export default function Home() {
   };
 
   const activeModels = AVAILABLE_MODELS
-    .filter(m => selectedModels.includes(m.id))
+    .filter(m => selectedModels.includes(m.id) && m.id !== 'CloudAPI')
     .sort((a, b) => (BASE_WEIGHTS[b.id] || 0) - (BASE_WEIGHTS[a.id] || 0));
 
   const totalActiveWeight = activeModels.reduce((sum, m) => sum + (BASE_WEIGHTS[m.id] || 0), 0);
@@ -196,6 +201,7 @@ export default function Home() {
   const vitScore = vitResult ? vitResult.score : 0;
   const siglipScore = siglipResult ? siglipResult.score : 0;
   const isC2paBypassed = c2paMetadata?.present && c2paMetadata?.valid && (c2paMetadata?.isAi || c2paMetadata?.isCamera);
+  const isCloudBypassed = results?.some(res => res.label.startsWith("Cloud API:"));
 
   const renderActiveModelsText = () => {
     if (modelWeights.length === 0) {
@@ -297,6 +303,9 @@ export default function Home() {
                             {model.name}
                             {model.warning && (
                               <span className={styles.warningTag}>Slow on CPU</span>
+                            )}
+                            {model.premium && (
+                              <span className={styles.premiumTag}>Premium</span>
                             )}
                           </span>
                           <span className={styles.checkboxDesc}>{model.desc}</span>
@@ -461,7 +470,11 @@ export default function Home() {
                     {/* Sub-models Bar list / Bypassed Message */}
                     {isC2paBypassed ? (
                       <div className={styles.bypassedModelsMessage}>
-                        🤖 Deep learning analysis bypassed. Image origin is cryptographically certified by active Content Credentials (C2PA).
+                        🛡️ Deep learning analysis bypassed. Image origin is cryptographically certified by active Content Credentials (C2PA).
+                      </div>
+                    ) : isCloudBypassed ? (
+                      <div className={styles.bypassedModelsMessage} style={{ borderColor: 'var(--success)', background: 'rgba(16, 185, 129, 0.08)' }}>
+                        ✨ Local neural network analysis bypassed. High-confidence AI generation signatures detected by premium Cloud API.
                       </div>
                     ) : (
                       <div className={styles.subModelsSection}>
@@ -512,6 +525,11 @@ export default function Home() {
                               This score is cryptographically certified by active <strong>Content Credentials (C2PA)</strong> embedded in the image manifest, verifying that the image was captured directly by a compatible physical camera device and contains no history of generative AI modification.
                             </>
                           )
+                        ) : isCloudBypassed ? (
+                          <>
+                            Our detection engine predicts a <strong>{(overallScore * 100).toFixed(1)}% anomaly score</strong> for this photo.
+                            This score was verified using the premium <strong>AI Image Detector API (Cloud)</strong>, which identified specific high-frequency noise fields and model-specific generative patterns from cloud-hosted detection networks.
+                          </>
                         ) : (
                           <>
                             Our detection engine predicts a <strong>{(overallScore * 100).toFixed(1)}% anomaly score</strong> for this photo. 
@@ -540,6 +558,11 @@ export default function Home() {
                         {selectedModels.includes('ViT-v2') && (
                           <div className={styles.modelExplainItem}>
                             <strong>ViT-v2 ({modelWeights.find(mw => mw.id === 'ViT-v2')?.weightPercent} weight)</strong>: Vision Transformer analyzing global anomalies; weighted lower due to real-photo calibration.
+                          </div>
+                        )}
+                        {selectedModels.includes('CloudAPI') && (
+                          <div className={styles.modelExplainItem} style={{ borderLeftColor: '#f59e0b' }}>
+                            <strong>AI Image Detector API (Cloud Tier)</strong>: Queries the premium cloud engine to identify global generative anomalies before executing local pipeline fallbacks.
                           </div>
                         )}
                       </div>

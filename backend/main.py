@@ -10,6 +10,10 @@ from huggingface_hub import hf_hub_download
 import json
 import asyncio
 import c2pa
+import os
+import requests
+
+AI_IMAGE_DETECTOR_API_KEY = os.environ.get("AI_IMAGE_DETECTOR_API_KEY", "")
 
 def verify_c2pa(image_bytes: bytes) -> dict:
     try:
@@ -150,7 +154,9 @@ def health_check():
 async def detect_image(
     file: UploadFile = File(...),
     models: str = Form("SigLIP2,FLUX,ViT-v2"),
-    x_mock_c2pa: str | None = Header(None)
+    use_cloud_api: bool = Form(False),
+    x_mock_c2pa: str | None = Header(None),
+    x_mock_cloud: str | None = Header(None)
 ):
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File provided is not an image.")
@@ -215,7 +221,65 @@ async def detect_image(
                     }) + "\n"
                     return
 
-            yield json.dumps({"status": "progress", "stage": "Initializing...", "progress": 10}) + "\n"
+            # Tier 2: Cloud API check (AI Image Detector API)
+            if use_cloud_api:
+                yield json.dumps({"status": "progress", "stage": "Calling AI Image Detector API (Cloud)...", "progress": 12}) + "\n"
+                await asyncio.sleep(0.01)
+                
+                if not AI_IMAGE_DETECTOR_API_KEY and not x_mock_cloud:
+                    yield json.dumps({"status": "progress", "stage": "Cloud API key unconfigured. Falling back to local pipeline...", "progress": 15}) + "\n"
+                    await asyncio.sleep(0.01)
+                else:
+                    try:
+                        if x_mock_cloud == "ai":
+                            api_res = {
+                                "ai-generated": True,
+                                "confidence": 0.98,
+                                "source_model": "Midjourney v6"
+                            }
+                        elif x_mock_cloud == "fail":
+                            raise Exception("Mocked API connection timeout")
+                        else:
+                            def call_cloud_api():
+                                url = "https://api.aiimagedetectorapi.com/v1/detect"
+                                headers = {
+                                    "Authorization": f"Bearer {AI_IMAGE_DETECTOR_API_KEY}"
+                                }
+                                files = {
+                                    "image": (file.filename or "image.jpg", contents, file.content_type or "image/jpeg")
+                                }
+                                resp = requests.post(url, headers=headers, files=files, timeout=10)
+                                resp.raise_for_status()
+                                return resp.json()
+                                
+                            api_res = await asyncio.to_thread(call_cloud_api)
+                        
+                        is_ai_detected = api_res.get("ai-generated", False) or api_res.get("ai_generated", False)
+                        confidence = api_res.get("confidence", 0.0) or api_res.get("ai_probability", 0.0)
+                        source_model = api_res.get("source_model", "Cloud Model") or api_res.get("source", "Cloud Model")
+                        
+                        if is_ai_detected and confidence > 0.5:
+                            yield json.dumps({"status": "progress", "stage": "AI Detected by Cloud API!", "progress": 100}) + "\n"
+                            await asyncio.sleep(0.01)
+                            yield json.dumps({
+                                "status": "complete",
+                                "predictions": [
+                                    {"label": f"Cloud API: {source_model} AI", "score": confidence}
+                                ],
+                                "overallScore": confidence,
+                                "c2pa": c2pa_res
+                            }) + "\n"
+                            return
+                        else:
+                            yield json.dumps({"status": "progress", "stage": "Cloud API check complete. Running local models for cross-verification...", "progress": 15}) + "\n"
+                            await asyncio.sleep(0.01)
+                            
+                    except Exception as cloud_err:
+                        print(f"AI Image Detector API failed: {cloud_err}")
+                        yield json.dumps({"status": "progress", "stage": "Cloud API call failed. Falling back to local pipeline...", "progress": 15}) + "\n"
+                        await asyncio.sleep(0.01)
+
+            yield json.dumps({"status": "progress", "stage": "Initializing...", "progress": 20}) + "\n"
             await asyncio.sleep(0.01)
 
             if classifier is None:
@@ -271,7 +335,7 @@ async def detect_image(
 
             # Execute active tasks sequentially
             for index, (model_name, run_func, stage_name) in enumerate(active_tasks):
-                progress_val = 15 + int(75 * index / total_tasks)
+                progress_val = 25 + int(65 * index / total_tasks)
                 yield json.dumps({"status": "progress", "stage": stage_name, "progress": progress_val}) + "\n"
                 await asyncio.sleep(0.01)
 
