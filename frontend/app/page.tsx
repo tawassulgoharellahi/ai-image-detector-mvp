@@ -195,7 +195,6 @@ export default function Home() {
   const siglipResult = results?.find(res => res.label.includes("General"));
   const vitScore = vitResult ? vitResult.score : 0;
   const siglipScore = siglipResult ? siglipResult.score : 0;
-  const hasBoost = vitScore > 0.60 && siglipScore > 0.20;
   const isC2paBypassed = c2paMetadata?.present && c2paMetadata?.valid && (c2paMetadata?.isAi || c2paMetadata?.isCamera);
 
   const renderActiveModelsText = () => {
@@ -516,10 +515,7 @@ export default function Home() {
                         ) : (
                           <>
                             Our detection engine predicts a <strong>{(overallScore * 100).toFixed(1)}% anomaly score</strong> for this photo. 
-                            This score is calculated {renderActiveModelsText()}
-                            {hasBoost && (
-                              <> (including a <strong>+20.0% boost</strong> due to concurrent high-risk indicators from ViT-v2 and SigLIP2)</>
-                            )}. 
+                            This score is calculated {renderActiveModelsText()}. 
                             {overallScore > 0.5 
                               ? " The image exhibits structural artifacts and high-frequency pixel anomalies characteristic of synthetic generation or inpainting."
                               : " The image shows natural lighting gradients and camera noise textures, indicating an authentic origin."

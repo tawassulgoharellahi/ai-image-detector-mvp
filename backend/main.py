@@ -307,11 +307,6 @@ async def detect_image(
             if total_weight > 0:
                 overall_score = weighted_sum / total_weight
 
-            # Apply concurrent indicators boost: +20% if ViT-v2 > 60% and SigLIP2 > 20%
-            vit_score = ai_scores.get("ViT-v2", 0.0)
-            siglip_score = ai_scores.get("SigLIP2", 0.0)
-            if vit_score > 0.60 and siglip_score > 0.20:
-                overall_score = min(overall_score + 0.20, 1.0)
 
             # Complete
             yield json.dumps({
