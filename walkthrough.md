@@ -79,4 +79,6 @@ Once built, your site will be fully live and calling the models hosted on Huggin
     if assertion.get("label") in ["c2pa.actions", "c2pa.actions.v2"]:
     ```
 *   **Result**: Validated using the local test image `cyberpunk_cat_1781395205955.png` (a Google Gemini-generated image). The parser now correctly detects `isAi: true` and `isCamera: false`, allowing the backend to immediately identify it as AI-generated and bypass the neural network/camera pathways.
+*   **Logic Rollback & "Google" AI Whitelist**: Reverted the addition of `"google"`, `"apple"`, and `"samsung"` to the camera keywords whitelist. Added `"google"` directly to the `ai_terms` list. As a result, any image signed by Google (with `"Google LLC"` as issuer) will now be classified as 100% AI-generated.
+
 
