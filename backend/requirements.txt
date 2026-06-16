@@ -17,3 +17,4 @@ scikit-learn
 ftfy
 blobfile
 c2pa-python==0.34.0
+numpy<2

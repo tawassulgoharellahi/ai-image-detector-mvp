@@ -21,6 +21,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application files and set permissions
 COPY --chown=user . /app
 
+# Ensure cache directories exist and are writable by the non-root user
+RUN mkdir -p /app/.cache/huggingface /app/.cache/torch && \
+    chown -R user:user /app
+
 # Switch to the non-root user
 USER user
 
