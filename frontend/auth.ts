@@ -1,0 +1,24 @@
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: "/",
+  },
+  callbacks: {
+    async session({ session, token }) {
+      // Pass token sub (Google ID) into session for downstream use
+      if (session.user && token.sub) {
+        (session.user as { id?: string }).id = token.sub;
+      }
+      return session;
+    },
+  },
+});
