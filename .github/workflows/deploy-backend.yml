@@ -30,4 +30,4 @@ jobs:
           git subtree split --prefix backend -b temp-deploy-branch
           
           # Force push the temporary branch to Hugging Face Spaces
-          git push https://tawassulgoharellahi:$HF_TOKEN@huggingface.co/spaces/tawassulgoharellahi/ai-image-detector-backend temp-deploy-branch:main --force
+          git push https://tawassulgohar:$HF_TOKEN@huggingface.co/spaces/tawassulgohar/ai-image-detector-backend temp-deploy-branch:main --force
