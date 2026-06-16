@@ -111,7 +111,8 @@ export default function Home() {
     formData.append('use_sightengine', selectedModels.includes('Sightengine').toString());
 
     try {
-      const response = await fetch('http://localhost:8000/api/detect', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_URL}/api/detect`, {
         method: 'POST',
         body: formData,
       });

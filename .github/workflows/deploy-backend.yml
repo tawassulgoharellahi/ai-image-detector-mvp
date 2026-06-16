@@ -1,0 +1,29 @@
+name: Deploy Backend to Hugging Face Spaces
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy Subdirectory to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # Configure Git
+          git config --global user.email "deploy-bot@github-actions.org"
+          git config --global user.name "GitHub Actions Deploy Bot"
+          
+          # Push the backend directory as the root of the Hugging Face Space repository
+          # Note: Replace 'tawassulgoharellahi/ai-image-detector-backend' if your Space name is different.
+          git subtree push --prefix backend https://tawassulgoharellahi:$HF_TOKEN@huggingface.co/spaces/tawassulgoharellahi/ai-image-detector-backend main --force
