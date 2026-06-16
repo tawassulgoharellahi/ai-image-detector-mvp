@@ -76,7 +76,7 @@ def verify_c2pa(image_bytes: bytes) -> dict:
         if not is_ai and is_valid:
             generator_lower = claim_generator.lower()
             issuer_lower = issuer.lower()
-            ai_terms = ["openai", "dall-e", "midjourney", "firefly", "stable diffusion", "bing image", "copilot", "craylet", "imagen", "synthetic", "generator", "algorithmic"]
+            ai_terms = ["openai", "dall-e", "midjourney", "firefly", "stable diffusion", "bing image", "copilot", "craylet", "imagen", "google", "synthetic", "generator", "algorithmic"]
             if any(term in generator_lower or term in issuer_lower for term in ai_terms):
                 is_ai = True
                         
@@ -84,8 +84,7 @@ def verify_c2pa(image_bytes: bytes) -> dict:
         if is_valid and not is_ai:
             generator_lower = claim_generator.lower()
             issuer_lower = issuer.lower()
-            camera_keywords = ["camera", "leica", "sony", "canon", "nikon", "apple", "samsung"]
-            if any(term in generator_lower or term in issuer_lower for term in camera_keywords):
+            if any(term in generator_lower or term in issuer_lower for term in ["camera", "leica", "sony", "canon", "nikon"]):
                 is_camera = True
 
         return {
