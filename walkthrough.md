@@ -68,3 +68,15 @@ The backend is fully configured and ready. To finish the deployment of your fron
 6. Click **Deploy**.
 
 Once built, your site will be fully live and calling the models hosted on Hugging Face Spaces!
+
+---
+
+## 🔒 Google Gemini C2PA Identification Fix
+
+*   **Problem**: Google Gemini (Imagen) generated images include cryptographic C2PA signatures signed by `"Google LLC"`. However, they organize metadata assertions under the **`"c2pa.actions.v2"`** schema label (rather than `"c2pa.actions"`). Because of this, the backend's C2PA parser missed the AI source designation, fell back to name-based camera heuristics, matched `"google"`, and incorrectly classified the image as a physical camera capture.
+*   **Fix**: Modified the C2PA verification logic in [backend/main.py](file:///Users/tge/Documents/ai-detector-mvp/backend/main.py#L67) to check for both `"c2pa.actions"` and `"c2pa.actions.v2"` assertion labels:
+    ```python
+    if assertion.get("label") in ["c2pa.actions", "c2pa.actions.v2"]:
+    ```
+*   **Result**: Validated using the local test image `cyberpunk_cat_1781395205955.png` (a Google Gemini-generated image). The parser now correctly detects `isAi: true` and `isCamera: false`, allowing the backend to immediately identify it as AI-generated and bypass the neural network/camera pathways.
+
