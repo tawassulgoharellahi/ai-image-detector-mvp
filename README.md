@@ -92,30 +92,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to access th
 
 ---
 
-## 🚀 Automated Hybrid Deployment (Vercel + Hugging Face Spaces)
-
-This repository is configured for fully automated hybrid deployment:
-1. **Frontend (Next.js)**: Natively deploys from the `/frontend` subdirectory.
-2. **Backend (FastAPI)**: Deployed to a free CPU Basic Docker space via GitHub Actions on pushes affecting the `/backend` subdirectory.
-
-### Backend Setup (Hugging Face Spaces)
-1. Create a new Space on [Hugging Face](https://huggingface.co/new-space).
-2. Set the **Space SDK** to **Docker** (choose **Blank** / CPU Basic template, which is 100% free).
-3. Generate a Write Access Token: Go to **Settings -> Access Tokens -> New Token**, select the **Write** role, and name it (e.g., `HF_DEPLOY_TOKEN`).
-4. Go to your GitHub repository **Settings -> Secrets and variables -> Actions -> Secrets** and create a new repository secret:
-   * **Name**: `HF_TOKEN`
-   * **Value**: (Your Hugging Face Write Access Token).
-5. The GitHub Action in `.github/workflows/deploy-backend.yml` will automatically push the backend directory to the Hugging Face Space repository on every commit to `main` that touches the `backend/` folder.
-
-### Frontend Setup (Vercel)
-1. Log in to [Vercel](https://vercel.com) using your GitHub account.
-2. Click **Add New** -> **Project** and import your repository.
-3. In the project configuration:
-   * **Root Directory**: Select `frontend`.
-   * **Framework Preset**: Next.js.
-   * **Environment Variables**: Add `NEXT_PUBLIC_API_URL` and set its value to your Hugging Face Space endpoint (e.g., `https://<username>-<space-name>.hf.space`).
-4. Click **Deploy**.
-
 ---
 
 ## License
