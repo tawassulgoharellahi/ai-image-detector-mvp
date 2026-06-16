@@ -24,6 +24,8 @@ jobs:
           git config --global user.email "deploy-bot@github-actions.org"
           git config --global user.name "GitHub Actions Deploy Bot"
           
-          # Push the backend directory as the root of the Hugging Face Space repository
-          # Note: Replace 'tawassulgoharellahi/ai-image-detector-backend' if your Space name is different.
-          git subtree push --prefix backend https://tawassulgoharellahi:$HF_TOKEN@huggingface.co/spaces/tawassulgoharellahi/ai-image-detector-backend main --force
+          # Split the backend directory into a temporary branch
+          git subtree split --prefix backend -b temp-deploy-branch
+          
+          # Force push the temporary branch to Hugging Face Spaces
+          git push https://tawassulgoharellahi:$HF_TOKEN@huggingface.co/spaces/tawassulgoharellahi/ai-image-detector-backend temp-deploy-branch:main --force
