@@ -344,8 +344,17 @@ async def detect_image(
             yield json.dumps({"status": "progress", "stage": "Initializing...", "progress": 20}) + "\n"
             await asyncio.sleep(0.01)
 
-            if classifier is None:
-                raise Exception("SigLIP2 AI Model is not loaded on the server.")
+            if not selected_models:
+                raise Exception("No local models selected for pipeline execution.")
+
+            # Ensure all selected models are loaded
+            for m in selected_models:
+                if m == "SigLIP2" and classifier is None:
+                    raise Exception("SigLIP2 AI Model is selected but not loaded on the server.")
+                elif m == "FLUX" and flux_model is None:
+                    raise Exception("FLUX Detector Model is selected but not loaded on the server.")
+                elif m == "ViT-v2" and vit_classifier is None:
+                    raise Exception("ViT-v2 AI Model is selected but not loaded on the server.")
 
             # Load image in PIL
             image = Image.open(io.BytesIO(contents)).convert("RGB")
