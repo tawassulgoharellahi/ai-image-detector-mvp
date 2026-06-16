@@ -64,7 +64,7 @@ def verify_c2pa(image_bytes: bytes) -> dict:
         is_ai = False
         assertions = active_manifest.get("assertions", [])
         for assertion in assertions:
-            if assertion.get("label") == "c2pa.actions":
+            if assertion.get("label") in ["c2pa.actions", "c2pa.actions.v2"]:
                 actions = assertion.get("data", {}).get("actions", [])
                 for action in actions:
                     digital_source = action.get("digitalSourceType")
