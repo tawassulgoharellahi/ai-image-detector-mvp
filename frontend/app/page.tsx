@@ -317,27 +317,59 @@ export default function Home() {
                 <div>
                   <p className={styles.panelSectionTitle}>Detection Pipeline</p>
                   <div className={styles.checkboxGrid}>
-                    {AVAILABLE_MODELS.map(model => (
-                      <label key={model.id} className={styles.checkboxLabel}>
-                        <input
-                          type="checkbox"
-                          disabled={isAnalyzing || results !== null}
-                          checked={selectedModels.includes(model.id)}
-                          onChange={e => {
-                            if (e.target.checked) setSelectedModels([...selectedModels, model.id]);
-                            else setSelectedModels(selectedModels.filter(id => id !== model.id));
-                          }}
-                        />
-                        <div className={styles.checkboxText}>
-                          <span className={styles.checkboxName}>
-                            {model.name}
-                            {model.warning && <span className={styles.warningTag}>Slow on CPU</span>}
-                            {model.premium && <span className={styles.premiumTag}>Premium</span>}
-                          </span>
-                          <span className={styles.checkboxDesc}>{model.desc}</span>
-                        </div>
-                      </label>
-                    ))}
+                    {/* Checkbox 1: Standard AI Pipeline (SigLIP2, FLUX, ViT-v2) */}
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        disabled={isAnalyzing || results !== null}
+                        checked={
+                          selectedModels.includes('SigLIP2') &&
+                          selectedModels.includes('FLUX') &&
+                          selectedModels.includes('ViT-v2')
+                        }
+                        onChange={e => {
+                          if (e.target.checked) {
+                            const newModels = [...new Set([...selectedModels, 'SigLIP2', 'FLUX', 'ViT-v2'])];
+                            setSelectedModels(newModels);
+                          } else {
+                            setSelectedModels(selectedModels.filter(id => id === 'Sightengine'));
+                          }
+                        }}
+                      />
+                      <div className={styles.checkboxText}>
+                        <span className={styles.checkboxName}>
+                          Standard Pipeline Models
+                        </span>
+                        <span className={styles.checkboxDesc}>
+                          Runs SigLIP2, FLUX, and ViT-v2 vision transformers as a weighted ensemble
+                        </span>
+                      </div>
+                    </label>
+
+                    {/* Checkbox 2: Sightengine AI Detection (Premium) */}
+                    <label className={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        disabled={isAnalyzing || results !== null}
+                        checked={selectedModels.includes('Sightengine')}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setSelectedModels([...selectedModels, 'Sightengine']);
+                          } else {
+                            setSelectedModels(selectedModels.filter(id => id !== 'Sightengine'));
+                          }
+                        }}
+                      />
+                      <div className={styles.checkboxText}>
+                        <span className={styles.checkboxName}>
+                          Sightengine AI Detection
+                          <span className={styles.premiumTag}>Premium</span>
+                        </span>
+                        <span className={styles.checkboxDesc}>
+                          Queries premium cloud API to detect generative noise fields
+                        </span>
+                      </div>
+                    </label>
                   </div>
                 </div>
 
