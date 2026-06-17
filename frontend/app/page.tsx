@@ -65,7 +65,11 @@ export default function Home() {
         const qData = await res.json();
         setQuota(qData);
         if (qData.remaining_sightengine <= 0) {
-          setSelectedModels(prev => prev.filter(id => id !== 'Sightengine'));
+          setSelectedModels(prev => {
+            const filtered = prev.filter(id => id !== 'Sightengine');
+            const locals = ['SigLIP2', 'FLUX', 'ViT-v2'];
+            return [...new Set([...filtered, ...locals])];
+          });
         }
       }
     } catch { /* backend may not be up yet */ }
@@ -339,6 +343,11 @@ export default function Home() {
                 {/* Model selection */}
                 <div>
                   <p className={styles.panelSectionTitle}>Detection Pipeline</p>
+                  {quota !== null && quota.remaining_sightengine <= 0 && (
+                    <div className={styles.pipelineNotice}>
+                      ⚠️ Sightengine daily limit reached. Standard pipeline has been automatically selected.
+                    </div>
+                  )}
                   <div className={styles.checkboxGrid}>
                     {/* Checkbox 1: Standard AI Pipeline (SigLIP2, FLUX, ViT-v2) */}
                     <label className={styles.checkboxLabel}>
