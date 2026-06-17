@@ -33,3 +33,4 @@ benchmark.py
 test_mime.py
 test_model.py
 test_c2pa*.py
+.vercel

@@ -12,6 +12,8 @@ import asyncio
 import c2pa
 import os
 import requests
+import threading
+from datetime import date
 
 # Load local .env file manually on startup if it exists
 if os.path.exists(".env"):
@@ -25,9 +27,23 @@ if os.path.exists(".env"):
 SIGHTENGINE_API_USER = os.environ.get("SIGHTENGINE_API_USER", "")
 SIGHTENGINE_API_SECRET = os.environ.get("SIGHTENGINE_API_SECRET", "")
 
+# ── Rate Limiting ────────────────────────────────────────────
+DAILY_TOTAL_LIMIT       = 10
+DAILY_SIGHTENGINE_LIMIT = 3
 
+_usage_lock: threading.Lock = threading.Lock()
+# { user_id: { "date": "YYYY-MM-DD", "total": int, "sightengine": int } }
+_user_usage: dict = {}
 
-
+def _get_or_reset_usage(user_id: str) -> dict:
+    """Return today's usage record for user_id, resetting if the date has changed."""
+    today = str(date.today())
+    record = _user_usage.get(user_id)
+    if record is None or record["date"] != today:
+        record = {"date": today, "total": 0, "sightengine": 0}
+        _user_usage[user_id] = record
+    return record
+# ─────────────────────────────────────────────────────────────
 def verify_c2pa(image_bytes: bytes) -> dict:
     try:
         mime_type = "image/jpeg"
@@ -163,16 +179,54 @@ def health_check():
         "vit_loaded": vit_classifier is not None
     }
 
+@app.get("/api/usage")
+def get_usage(x_user_id: str | None = Header(None)):
+    """Return today's usage and limits for the requesting user."""
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="X-User-Id header required.")
+    with _usage_lock:
+        record = _get_or_reset_usage(x_user_id)
+        return {
+            "total":               record["total"],
+            "sightengine":         record["sightengine"],
+            "total_limit":         DAILY_TOTAL_LIMIT,
+            "sightengine_limit":   DAILY_SIGHTENGINE_LIMIT,
+            "remaining_total":     DAILY_TOTAL_LIMIT - record["total"],
+            "remaining_sightengine": DAILY_SIGHTENGINE_LIMIT - record["sightengine"],
+        }
+
 @app.post("/api/detect")
 async def detect_image(
     file: UploadFile = File(...),
     models: str = Form("SigLIP2,FLUX,ViT-v2"),
     use_sightengine: bool = Form(False),
+    x_user_id: str | None = Header(None),
     x_mock_c2pa: str | None = Header(None),
     x_mock_sightengine: str | None = Header(None)
 ):
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File provided is not an image.")
+
+    # ── Rate limit check ────────────────────────────────────
+    if x_user_id:
+        with _usage_lock:
+            record = _get_or_reset_usage(x_user_id)
+            if record["total"] >= DAILY_TOTAL_LIMIT:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Daily limit reached. You can analyse {DAILY_TOTAL_LIMIT} images per day. Your quota resets at midnight UTC."
+                )
+            if use_sightengine and record["sightengine"] >= DAILY_SIGHTENGINE_LIMIT:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Sightengine daily limit reached. You can use Sightengine {DAILY_SIGHTENGINE_LIMIT} times per day. Your quota resets at midnight UTC."
+                )
+            # Increment now — before processing so concurrent requests can't bypass the limit
+            record["total"] += 1
+            if use_sightengine:
+                record["sightengine"] += 1
+    # ────────────────────────────────────────────────────────
+
 
     contents = await file.read()
     selected_models = [m.strip() for m in models.split(",") if m.strip()]
