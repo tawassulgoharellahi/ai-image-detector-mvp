@@ -47,6 +47,7 @@ export default function Home() {
   const [selectedModels, setSelectedModels] = useState<string[]>(['SigLIP2', 'FLUX', 'ViT-v2']);
   const [overallScore, setOverallScore]   = useState<number | null>(null);
   const [c2pa, setC2pa]                   = useState<C2paMetadata | null>(null);
+  const [sightengineFallback, setSightengineFallback] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,7 +60,13 @@ export default function Home() {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const res = await fetch(`${API_URL}/api/usage`, { headers: { 'X-User-Id': session.user.email } });
-      if (res.ok) setQuota(await res.json());
+      if (res.ok) {
+        const qData = await res.json();
+        setQuota(qData);
+        if (qData.remaining_sightengine <= 0) {
+          setSelectedModels(prev => prev.filter(id => id !== 'Sightengine'));
+        }
+      }
     } catch { /* backend may not be up yet */ }
   }, [session?.user?.email]);
 
@@ -143,6 +150,7 @@ export default function Home() {
               setResults(data.predictions);
               if (data.overallScore !== undefined) setOverallScore(data.overallScore);
               if (data.c2pa         !== undefined) setC2pa(data.c2pa);
+              if (data.sightengine_fallback !== undefined) setSightengineFallback(data.sightengine_fallback);
             } else if (data.status === 'error') {
               throw new Error(data.message);
             }
@@ -161,6 +169,7 @@ export default function Home() {
     setFile(null); setPreview(null); setResults(null);
     setOverallScore(null); setC2pa(null); setError(null);
     setProgressPct(0); setLoaderText('Initializing...');
+    setSightengineFallback(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -347,11 +356,15 @@ export default function Home() {
                     </label>
 
                     {/* Checkbox 2: Sightengine AI Detection (Premium) */}
-                    <label className={styles.checkboxLabel}>
+                    <label 
+                      className={`${styles.checkboxLabel} ${
+                        (quota !== null && quota.remaining_sightengine <= 0) ? styles.checkboxLabelDisabled : ''
+                      }`}
+                    >
                       <input
                         type="checkbox"
-                        disabled={isAnalyzing || results !== null}
-                        checked={selectedModels.includes('Sightengine')}
+                        disabled={isAnalyzing || results !== null || (quota !== null && quota.remaining_sightengine <= 0)}
+                        checked={selectedModels.includes('Sightengine') && (quota === null || quota.remaining_sightengine > 0)}
                         onChange={e => {
                           if (e.target.checked) {
                             setSelectedModels([...selectedModels, 'Sightengine']);
@@ -363,7 +376,11 @@ export default function Home() {
                       <div className={styles.checkboxText}>
                         <span className={styles.checkboxName}>
                           Sightengine AI Detection
-                          <span className={styles.premiumTag}>Premium</span>
+                          {quota !== null && quota.remaining_sightengine <= 0 ? (
+                            <span className={styles.warningTag} style={{ textTransform: 'none', background: 'rgba(239, 68, 68, 0.15)' }}>Limit Reached</span>
+                          ) : (
+                            <span className={styles.premiumTag}>Premium</span>
+                          )}
                         </span>
                         <span className={styles.checkboxDesc}>
                           Queries premium cloud API to detect generative noise fields
@@ -455,6 +472,16 @@ export default function Home() {
                 {/* Results */}
                 {results && overallScore !== null && (
                   <div className={styles.reportResultsState}>
+
+                    {/* Sightengine Fallback Warning Banner */}
+                    {sightengineFallback && (
+                      <div className={styles.fallbackBanner}>
+                        <span>⚠️</span>
+                        <div>
+                          <strong>Sightengine daily limit reached.</strong> Automatically shifted to standard local pipeline models.
+                        </div>
+                      </div>
+                    )}
 
                     {/* Anomaly gauge */}
                     <div className={styles.anomalySection}>

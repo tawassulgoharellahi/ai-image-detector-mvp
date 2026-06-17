@@ -208,6 +208,7 @@ async def detect_image(
         raise HTTPException(status_code=400, detail="File provided is not an image.")
 
     # ── Rate limit check ────────────────────────────────────
+    sightengine_fallback = False
     if x_user_id:
         with _usage_lock:
             record = _get_or_reset_usage(x_user_id)
@@ -217,10 +218,9 @@ async def detect_image(
                     detail=f"Daily limit reached. You can analyse {DAILY_TOTAL_LIMIT} images per day. Your quota resets at midnight UTC."
                 )
             if use_sightengine and record["sightengine"] >= DAILY_SIGHTENGINE_LIMIT:
-                raise HTTPException(
-                    status_code=429,
-                    detail=f"Sightengine daily limit reached. You can use Sightengine {DAILY_SIGHTENGINE_LIMIT} times per day. Your quota resets at midnight UTC."
-                )
+                use_sightengine = False
+                sightengine_fallback = True
+            
             # Increment now — before processing so concurrent requests can't bypass the limit
             record["total"] += 1
             if use_sightengine:
@@ -233,6 +233,10 @@ async def detect_image(
 
     async def event_generator():
         try:
+            if sightengine_fallback:
+                yield json.dumps({"status": "progress", "stage": "Sightengine quota finished. Shifting to standard pipeline...", "progress": 4}) + "\n"
+                await asyncio.sleep(1.5)
+
             yield json.dumps({"status": "progress", "stage": "Checking C2PA Provenance...", "progress": 5}) + "\n"
             await asyncio.sleep(0.01)
 
@@ -392,6 +396,11 @@ async def detect_image(
 
                     except Exception as err:
                         print(f"Sightengine API failed: {err}")
+                        if x_user_id:
+                            with _usage_lock:
+                                record = _get_or_reset_usage(x_user_id)
+                                if record["sightengine"] > 0:
+                                    record["sightengine"] -= 1
                         yield json.dumps({"status": "progress", "stage": "Sightengine API call failed. Falling back to local pipeline...", "progress": 15}) + "\n"
                         await asyncio.sleep(0.01)
 
@@ -502,7 +511,8 @@ async def detect_image(
                 "status": "complete", 
                 "predictions": predictions,
                 "overallScore": overall_score,
-                "c2pa": c2pa_res
+                "c2pa": c2pa_res,
+                "sightengine_fallback": sightengine_fallback
             }) + "\n"
 
         except Exception as e:

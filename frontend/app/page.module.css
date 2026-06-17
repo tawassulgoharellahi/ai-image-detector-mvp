@@ -894,3 +894,36 @@
   border-radius: 3px;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Disabled checkbox styling */
+.checkboxLabelDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.15) !important;
+  border-color: transparent !important;
+}
+.checkboxLabelDisabled:hover {
+  background: rgba(0, 0, 0, 0.15) !important;
+  border-color: transparent !important;
+}
+.checkboxLabelDisabled input {
+  cursor: not-allowed !important;
+}
+
+/* Fallback Warning Banner */
+.fallbackBanner {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--warning);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin-bottom: 1.25rem;
+}
+.fallbackBanner strong {
+  color: var(--text-primary);
+}
