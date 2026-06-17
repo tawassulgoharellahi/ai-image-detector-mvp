@@ -307,14 +307,13 @@ export default function Home() {
                   onDrop={onDrop}
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <span className={styles.dropzoneIcon}>📸</span>
                   <h3>Drag &amp; drop an image here</h3>
                   <p>or click to browse from your device</p>
                   <input type="file" ref={fileInputRef} onChange={onFileChange} accept="image/*" style={{ display: 'none' }} />
                 </div>
 
                 <div className={styles.uploadHints}>
-                  <span className={styles.uploadHint}>✅ JPEG / PNG / WEBP</span>
+                  <span className={styles.uploadHint}>JPEG / PNG / WEBP</span>
                   <span className={styles.uploadHint}>🔒 Never stored or shared</span>
                   <span className={styles.uploadHint}>⚡ Results in seconds</span>
                 </div>
