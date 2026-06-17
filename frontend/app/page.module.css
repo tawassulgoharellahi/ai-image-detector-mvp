@@ -927,3 +927,54 @@
 .fallbackBanner strong {
   color: var(--text-primary);
 }
+
+/* ── Accordion style for Model Breakdown ── */
+.accordion {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.12);
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.accordionSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.accordionSummary::-webkit-details-marker {
+  display: none;
+}
+
+.accordionSummary:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.accordionSummary::after {
+  content: '▼';
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+details[open] .accordionSummary::after {
+  transform: rotate(180deg);
+}
+
+.accordionContent {
+  padding: 1.25rem;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+}

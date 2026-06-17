@@ -579,34 +579,38 @@ export default function Home() {
                         ✨ Local neural network analysis bypassed — high-confidence AI signatures detected by the premium Sightengine API.
                       </div>
                     ) : (
-                      <div>
-                        <p className={styles.sectionTitle}>Model Breakdown</p>
-                        {results.map(res => {
-                          const isAILabel = ['ai', 'fake', 'deepfake', 'likelihood'].some(k => res.label.toLowerCase().includes(k));
-                          if (!isAILabel) return null;
+                      <details className={styles.accordion}>
+                        <summary className={styles.accordionSummary}>
+                          <span>Model Breakdown</span>
+                        </summary>
+                        <div className={styles.accordionContent}>
+                          {results.map(res => {
+                            const isAILabel = ['ai', 'fake', 'deepfake', 'likelihood'].some(k => res.label.toLowerCase().includes(k));
+                            if (!isAILabel) return null;
 
-                          let displayName = res.label;
-                          if (res.label.includes('General: Fake'))    displayName = 'SigLIP2 (General)';
-                          else if (res.label.includes('FLUX: AI'))    displayName = 'FLUX Detector';
-                          else if (res.label.includes('ViT-v2: Deepfake')) displayName = 'ViT-v2 Anomaly';
-                          else if (res.label.startsWith('Sightengine:')) displayName = res.label.replace('Sightengine: ', '');
+                            let displayName = res.label;
+                            if (res.label.includes('General: Fake'))    displayName = 'SigLIP2 (General)';
+                            else if (res.label.includes('FLUX: AI'))    displayName = 'FLUX Detector';
+                            else if (res.label.includes('ViT-v2: Deepfake')) displayName = 'ViT-v2 Anomaly';
+                            else if (res.label.startsWith('Sightengine:')) displayName = res.label.replace('Sightengine: ', '');
 
-                          return (
-                            <div key={res.label} className={styles.modelBarItem}>
-                              <div className={styles.modelBarHeader}>
-                                <span>{displayName}</span>
-                                <span>{(res.score * 100).toFixed(1)}%</span>
+                            return (
+                              <div key={res.label} className={styles.modelBarItem}>
+                                <div className={styles.modelBarHeader}>
+                                  <span>{displayName}</span>
+                                  <span>{(res.score * 100).toFixed(1)}%</span>
+                                </div>
+                                <div className={styles.barContainer}>
+                                  <div className={styles.barFill} style={{
+                                    width: `${res.score * 100}%`,
+                                    background: res.score > 0.5 ? 'var(--error)' : 'var(--success)',
+                                  }} />
+                                </div>
                               </div>
-                              <div className={styles.barContainer}>
-                                <div className={styles.barFill} style={{
-                                  width: `${res.score * 100}%`,
-                                  background: res.score > 0.5 ? 'var(--error)' : 'var(--success)',
-                                }} />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      </details>
                     )}
 
                     {/* Engine Summary */}
