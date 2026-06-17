@@ -56,6 +56,7 @@ export default function Home() {
   type Quota = { total: number; sightengine: number; total_limit: number; sightengine_limit: number; remaining_total: number; remaining_sightengine: number };
   const [quota, setQuota] = useState<Quota | null>(null);
   const [showPipelineNotice, setShowPipelineNotice] = useState(false);
+  const hasShownPipelineNoticeRef = useRef(false);
 
   const fetchQuota = useCallback(async () => {
     if (!session?.user?.email) return;
@@ -71,7 +72,10 @@ export default function Home() {
             const locals = ['SigLIP2', 'FLUX', 'ViT-v2'];
             return [...new Set([...filtered, ...locals])];
           });
-          setShowPipelineNotice(true);
+          if (!hasShownPipelineNoticeRef.current) {
+            setShowPipelineNotice(true);
+            hasShownPipelineNoticeRef.current = true;
+          }
         }
       }
     } catch { /* backend may not be up yet */ }
