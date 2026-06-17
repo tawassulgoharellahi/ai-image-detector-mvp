@@ -77,6 +77,20 @@ export default function Home() {
 
   useEffect(() => { fetchQuota(); }, [fetchQuota]);
 
+  useEffect(() => {
+    if (quota !== null && quota.remaining_sightengine <= 0) {
+      setSelectedModels(prev => {
+        const hasLocals = prev.includes('SigLIP2') && prev.includes('FLUX') && prev.includes('ViT-v2');
+        const hasSightengine = prev.includes('Sightengine');
+        if (!hasLocals || hasSightengine) {
+          const filtered = prev.filter(id => id !== 'Sightengine');
+          return [...new Set([...filtered, 'SigLIP2', 'FLUX', 'ViT-v2'])];
+        }
+        return prev;
+      });
+    }
+  }, [quota]);
+
   /* ── Drag & Drop ── */
   const onDragOver  = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
   const onDragLeave = () => setIsDragging(false);
@@ -345,15 +359,20 @@ export default function Home() {
                   <p className={styles.panelSectionTitle}>Detection Pipeline</p>
                   {quota !== null && quota.remaining_sightengine <= 0 && (
                     <div className={styles.pipelineNotice}>
-                      ⚠️ Sightengine daily limit reached. Standard pipeline has been automatically selected.
+                      <span>⚠️</span>
+                      <div>
+                        <strong>Sightengine daily limit reached.</strong> The standard pipeline has been automatically selected.
+                      </div>
                     </div>
                   )}
                   <div className={styles.checkboxGrid}>
                     {/* Checkbox 1: Standard AI Pipeline (SigLIP2, FLUX, ViT-v2) */}
-                    <label className={styles.checkboxLabel}>
+                    <label className={`${styles.checkboxLabel} ${
+                      (quota !== null && quota.remaining_sightengine <= 0) ? styles.checkboxLabelHighlighted : ''
+                    }`}>
                       <input
                         type="checkbox"
-                        disabled={isAnalyzing || results !== null}
+                        disabled={isAnalyzing || results !== null || (quota !== null && quota.remaining_sightengine <= 0)}
                         checked={
                           selectedModels.includes('SigLIP2') &&
                           selectedModels.includes('FLUX') &&
@@ -371,6 +390,9 @@ export default function Home() {
                       <div className={styles.checkboxText}>
                         <span className={styles.checkboxName}>
                           Standard Pipeline Models
+                          {quota !== null && quota.remaining_sightengine <= 0 && (
+                            <span className={styles.warningTag} style={{ textTransform: 'none', background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-blue)' }}>Auto-Selected</span>
+                          )}
                         </span>
                         <span className={styles.checkboxDesc}>
                           Runs SigLIP2, FLUX, and ViT-v2 vision transformers as a weighted ensemble
