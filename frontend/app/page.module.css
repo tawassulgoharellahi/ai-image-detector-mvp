@@ -991,10 +991,25 @@ details[open] .accordionSummary::after {
   font-size: 0.82rem;
   line-height: 1.4;
   margin-bottom: 0.75rem;
+  transition: opacity 0.4s ease, max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease, border-color 0.4s ease;
+  opacity: 1;
+  max-height: 100px;
+  overflow: hidden;
 }
 
 .pipelineNotice strong {
   color: var(--text-primary);
+}
+
+.pipelineNoticeHidden {
+  opacity: 0 !important;
+  max-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
 }
 
 /* Highlighted checkbox styling */

@@ -55,6 +55,7 @@ export default function Home() {
   /* ── Quota ── */
   type Quota = { total: number; sightengine: number; total_limit: number; sightengine_limit: number; remaining_total: number; remaining_sightengine: number };
   const [quota, setQuota] = useState<Quota | null>(null);
+  const [showPipelineNotice, setShowPipelineNotice] = useState(false);
 
   const fetchQuota = useCallback(async () => {
     if (!session?.user?.email) return;
@@ -70,6 +71,7 @@ export default function Home() {
             const locals = ['SigLIP2', 'FLUX', 'ViT-v2'];
             return [...new Set([...filtered, ...locals])];
           });
+          setShowPipelineNotice(true);
         }
       }
     } catch { /* backend may not be up yet */ }
@@ -90,6 +92,15 @@ export default function Home() {
       });
     }
   }, [quota]);
+
+  useEffect(() => {
+    if (showPipelineNotice) {
+      const timer = setTimeout(() => {
+        setShowPipelineNotice(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showPipelineNotice]);
 
   /* ── Drag & Drop ── */
   const onDragOver  = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
@@ -358,7 +369,7 @@ export default function Home() {
                 <div>
                   <p className={styles.panelSectionTitle}>Detection Pipeline</p>
                   {quota !== null && quota.remaining_sightengine <= 0 && (
-                    <div className={styles.pipelineNotice}>
+                    <div className={`${styles.pipelineNotice} ${!showPipelineNotice ? styles.pipelineNoticeHidden : ''}`}>
                       <span>⚠️</span>
                       <div>
                         <strong>Sightengine daily limit reached.</strong> The standard pipeline has been automatically selected.
@@ -390,9 +401,6 @@ export default function Home() {
                       <div className={styles.checkboxText}>
                         <span className={styles.checkboxName}>
                           Standard Pipeline Models
-                          {quota !== null && quota.remaining_sightengine <= 0 && (
-                            <span className={styles.warningTag} style={{ textTransform: 'none', background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-blue)' }}>Auto-Selected</span>
-                          )}
                         </span>
                         <span className={styles.checkboxDesc}>
                           Runs SigLIP2, FLUX, and ViT-v2 vision transformers as a weighted ensemble
