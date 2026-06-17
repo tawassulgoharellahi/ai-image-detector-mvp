@@ -437,7 +437,7 @@ export default function Home() {
                           color:      overallScore > 0.5 ? 'var(--error)' : 'var(--success)',
                           borderColor: overallScore > 0.5 ? 'rgba(239,68,68,0.4)' : 'rgba(16,185,129,0.4)',
                         }}>
-                          {overallScore > 0.5 ? '⚠ Likely AI Generated / Modified' : '✅ Likely Authentic / Real'}
+                          {overallScore > 0.5 ? 'Likely AI Generated / Modified' : 'Likely Authentic / Real'}
                         </div>
                         {vitScore > 0.65 && overallScore <= 0.5 && (
                           <div className={styles.verdictBadge} style={{
@@ -445,7 +445,7 @@ export default function Home() {
                             color: 'var(--warning)',
                             borderColor: 'rgba(245,158,11,0.4)',
                           }}>
-                            ✏️ Possibly Digitally Edited
+                            Possibly Digitally Edited
                           </div>
                         )}
                       </div>
