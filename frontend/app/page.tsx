@@ -48,6 +48,7 @@ export default function Home() {
   const [overallScore, setOverallScore]   = useState<number | null>(null);
   const [c2pa, setC2pa]                   = useState<C2paMetadata | null>(null);
   const [sightengineFallback, setSightengineFallback] = useState(false);
+  const [analysisSelectedModels, setAnalysisSelectedModels] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -102,6 +103,7 @@ export default function Home() {
     setLoaderText('Initializing...');
     setProgressPct(5);
     setC2pa(null);
+    setAnalysisSelectedModels([...selectedModels]);
 
     const formData = new FormData();
     formData.append('file', file);
@@ -151,6 +153,18 @@ export default function Home() {
               if (data.overallScore !== undefined) setOverallScore(data.overallScore);
               if (data.c2pa         !== undefined) setC2pa(data.c2pa);
               if (data.sightengine_fallback !== undefined) setSightengineFallback(data.sightengine_fallback);
+
+              // Check if standard models were actually run by the backend
+              const hasLocalModels = data.predictions.some((p: any) => 
+                ['General: Fake', 'FLUX: AI', 'ViT-v2: Deepfake'].includes(p.label)
+              );
+              if (hasLocalModels) {
+                setSelectedModels(prev => {
+                  const locals = ['SigLIP2', 'FLUX', 'ViT-v2'];
+                  const merged = [...new Set([...prev, ...locals])];
+                  return merged;
+                });
+              }
             } else if (data.status === 'error') {
               throw new Error(data.message);
             }
@@ -170,6 +184,7 @@ export default function Home() {
     setOverallScore(null); setC2pa(null); setError(null);
     setProgressPct(0); setLoaderText('Initializing...');
     setSightengineFallback(false);
+    setAnalysisSelectedModels([]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -607,6 +622,18 @@ export default function Home() {
                           )
                         ) : isSightengineBypassed ? (
                           <>Our engine predicts a <strong>{(overallScore * 100).toFixed(1)}% anomaly score</strong> — verified by the premium <strong>Sightengine AI Detection API</strong> which identified high-frequency noise fields and model-specific generative patterns.</>
+                        ) : (analysisSelectedModels.includes('Sightengine') && !analysisSelectedModels.includes('SigLIP2') && results?.some(r => ['General: Fake', 'FLUX: AI', 'ViT-v2: Deepfake'].includes(r.label))) ? (
+                          <>
+                            {sightengineFallback ? (
+                              <>Our engine predicts a <strong>{(overallScore * 100).toFixed(1)}% anomaly score</strong>. Because your Sightengine daily limit was reached, the system automatically shifted to local models ({renderWeightsText()}) to complete the analysis.</>
+                            ) : (
+                              <>Our engine predicts a <strong>{(overallScore * 100).toFixed(1)}% anomaly score</strong>. Because the premium Sightengine scan did not find high-confidence AI, the pipeline automatically cross-verified using the standard local models ({renderWeightsText()}).</>
+                            )}
+                            {' '}
+                            {overallScore > 0.5
+                              ? 'The image exhibits structural artifacts and high-frequency pixel anomalies characteristic of synthetic generation or inpainting.'
+                              : 'The image shows natural lighting gradients and camera noise textures, indicating an authentic origin.'}
+                          </>
                         ) : (
                           <>Our engine predicts a <strong>{(overallScore * 100).toFixed(1)}% anomaly score</strong> calculated {renderWeightsText()}.{' '}
                             {overallScore > 0.5
