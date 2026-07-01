@@ -1,6 +1,6 @@
 # AI & Deepfake Image Detector
 
-A premium, modern web application designed to detect AI-generated and deepfaked images. Built with a Next.js (React) frontend and a Python FastAPI backend, it runs multiple AI classification models in parallel to analyze visual patterns and features a cryptographically verified **C2PA Content Credentials** provenance tier.
+A web application designed to detect AI-generated and deepfaked images. Built with a Next.js (React) frontend and a Python FastAPI backend, it runs multiple AI classification models in parallel to analyze visual patterns and features a cryptographically verified **C2PA Content Credentials** provenance tier.
 
 ---
 
